@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classroom Seating Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#22301F;
+    --ink-soft:#4A5A45;
+    --paper:#FBF7ED;
+    --paper-dim:#F3EDDC;
+    --board:#1E3B2F;
+    --board-dark:#16302A;
+    --chalk:#F4EFE1;
+    --redpen:#B23A2E;
+    --redpen-dim:#F1DAD5;
+    --gold:#C68C1D;
+    --gold-dim:#F3E2B8;
+    --line:#DDD3B8;
+    --card:#FFFFFF;
+    --carpet:#132A4E;
+    --carpet-dark:#0D2039;
+    --radius:10px;
+    --shadow: 0 1px 2px rgba(34,48,31,0.08), 0 4px 14px rgba(34,48,31,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Inter',system-ui,sans-serif; line-height:1.45; -webkit-font-smoothing:antialiased; }
+  .hand{font-family:'Caveat',cursive;}
+
+  header.app-header{
+    background:linear-gradient(180deg, var(--board) 0%, var(--board-dark) 100%);
+    color:var(--chalk); padding:34px 24px 30px; position:relative; overflow:hidden; border-bottom:6px solid var(--gold);
+  }
+  header.app-header::before{
+    content:""; position:absolute; inset:0;
+    background-image: radial-gradient(rgba(244,239,225,0.05) 1px, transparent 1px);
+    background-size:14px 14px; opacity:.5; pointer-events:none;
+  }
+  .header-inner{max-width:1180px;margin:0 auto;position:relative;}
+  .header-actions{position:absolute; top:0; right:0;}
+  .header-actions button{box-shadow:0 2px 6px rgba(0,0,0,.25);}
+  @media (max-width: 700px){
+    .header-actions{position:static; margin-bottom:14px;}
+  }
+  .eyebrow{ text-transform:uppercase; letter-spacing:.14em; font-size:11.5px; font-weight:700; color:var(--gold-dim); margin:0 0 6px; }
+  h1.title{ font-family:'Caveat',cursive; font-weight:700; font-size:50px; line-height:1; margin:0 0 8px; color:var(--chalk); }
+  .subtitle{max-width:660px; font-size:15px; color:#CFE0D2; margin:0;}
+
+  main{
+    max-width:1180px; margin:0 auto; padding:28px 24px 80px;
+    display:grid; grid-template-columns: minmax(320px, 440px) 1fr; gap:28px; align-items:start;
+  }
+  @media (max-width: 880px){ main{grid-template-columns:1fr;} }
+
+  .panel{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); }
+  .section{ padding:20px 20px 22px; border-bottom:1px solid var(--line); }
+  .section:last-child{border-bottom:none;}
+  .section-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:12px; }
+  .section-num{ font-family:'Caveat',cursive; font-weight:700; font-size:26px; color:var(--redpen); min-width:26px; }
+  .section-title{ font-weight:700; font-size:15.5px; margin:0; }
+  .section-hint{ font-size:12.5px; color:var(--ink-soft); margin:2px 0 12px; }
+
+  label.field-label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; }
+  input[type=text], input[type=number], textarea, select{
+    width:100%; font-family:inherit; font-size:13.5px; padding:8px 10px;
+    border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink);
+  }
+  textarea{resize:vertical; min-height:88px;}
+  input:focus, textarea:focus, select:focus, button:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+
+  .toggle-group{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; flex-wrap:wrap; }
+  .toggle-group button{
+    border:none; background:var(--paper); color:var(--ink-soft); font-family:inherit; font-size:12.5px;
+    font-weight:600; padding:7px 14px; cursor:pointer;
+  }
+  .toggle-group button + button{border-left:1px solid var(--line);}
+  .toggle-group button.active{background:var(--board); color:var(--chalk);}
+
+  .checkbox-row{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink); margin-top:4px; }
+  .checkbox-row input{width:auto;}
+
+  button.btn{
+    font-family:inherit; font-weight:700; font-size:13.5px; padding:9px 16px; border-radius:8px;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer;
+  }
+  button.btn:hover{background:var(--paper-dim);}
+  button.btn-primary{ background:var(--board); border-color:var(--board); color:var(--chalk); width:100%; font-size:15px; padding:12px 16px; }
+  button.btn-primary:hover{background:var(--board-dark);}
+  button.btn-gold{ background:var(--gold); border-color:var(--gold); color:#3A2600; }
+  button.btn-gold:hover{filter:brightness(0.95);}
+  button.btn-ghost{ background:transparent; border-color:transparent; color:var(--redpen); padding:6px 4px; font-size:12.5px; }
+  button:disabled{opacity:.5; cursor:not-allowed;}
+  .btn-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+
+  .pod-editor-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px; margin-top:10px; }
+  .pod-editor-item{ border:1px solid var(--line); border-radius:7px; padding:6px 8px; text-align:center; font-size:11.5px; color:var(--ink-soft); background:var(--paper); }
+  .pod-editor-item input{ width:100%; text-align:center; margin-top:3px; padding:4px; }
+
+  .chip-list{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .chip{ display:flex; align-items:center; gap:6px; background:var(--paper); border:1px solid var(--line); border-radius:20px; padding:4px 4px 4px 12px; font-size:12.5px; }
+  .gtoggle{display:inline-flex; align-items:center; border-radius:12px; overflow:hidden; border:1px solid var(--line);}
+  .gtoggle button{ border:none; font-size:10.5px; font-weight:800; padding:4px 7px; background:var(--card); color:var(--ink-soft); cursor:pointer; font-family:inherit; }
+  .gtoggle button.active-m{background:#3E6FA8; color:#fff;}
+  .gtoggle button.active-f{background:var(--redpen); color:#fff;}
+  .gtoggle button.active-u{background:#8a8a8a; color:#fff;}
+  .btoggle{display:inline-flex; align-items:center; border-radius:12px; overflow:hidden; border:1px solid var(--line); margin-left:4px;}
+  .btoggle button{ border:none; font-size:10.5px; font-weight:800; padding:4px 7px; background:var(--card); color:var(--ink-soft); cursor:pointer; font-family:inherit; }
+  .btoggle button.active-b1{background:var(--redpen); color:#fff;}
+  .btoggle button.active-b2{background:#8a8a8a; color:#fff;}
+  .btoggle button.active-b3{background:#3E8A5A; color:#fff;}
+  .roster-count{font-size:12px; color:var(--ink-soft); margin-top:8px;}
+
+  .rule-pill{ display:flex; align-items:center; justify-content:space-between; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:6px 10px; font-size:12.5px; margin-bottom:6px; }
+  .rule-pill .tag{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; padding:2px 7px; border-radius:10px; color:#fff; }
+  .tag-apart{background:var(--redpen);}
+  .tag-together{background:#3E8A5A;}
+  .rule-unrecognized{ font-size:11.5px; color:var(--ink-soft); font-style:italic; padding:4px 2px; }
+
+  .warn-box{ background:var(--redpen-dim); border:1px solid #E3B3A9; color:#7A2A20; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:10px; }
+  .warn-box ul{margin:6px 0 0; padding-left:18px;}
+
+  .chart-panel{padding:20px;}
+  .chart-toolbar{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+  .chart-toolbar h2{ font-family:'Caveat',cursive; font-size:26px; margin:0; color:var(--board); }
+
+  #chartArea{ border:1px solid var(--line); border-radius:var(--radius); background:var(--card); padding:26px; min-height:320px; }
+  .chart-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--ink-soft); min-height:280px; gap:10px; }
+  .chart-empty .hand{font-size:24px; color:var(--board);}
+
+  .chart-title-block{margin-bottom:14px;}
+  .chart-title-block input{ font-family:'Caveat',cursive; font-size:26px; color:var(--board); border:none; background:transparent; padding:0; width:100%; }
+  .chart-meta{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .chart-meta.swap-hint{color:var(--gold); font-weight:600;}
+
+  /* pods */
+  .pods-grid{ display:grid; gap:22px; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); }
+  .pod{ background:var(--board); border-radius:16px; padding:14px 12px 12px; position:relative; }
+  .pod-label{ font-family:'Caveat',cursive; font-weight:700; font-size:19px; color:var(--chalk); text-align:center; margin-bottom:10px; display:block; }
+  .pod-seats{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+  .seat-card{
+    background:var(--card); border-radius:6px; padding:8px 6px 7px; text-align:center; font-size:12px; font-weight:600;
+    min-height:40px; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 0 rgba(0,0,0,.12); position:relative;
+  }
+  .seat-card::before{
+    content:""; position:absolute; top:4px; left:50%; transform:translateX(-50%); width:6px; height:6px; border-radius:50%;
+    background:var(--paper-dim); box-shadow: inset 0 1px 1px rgba(0,0,0,.15);
+  }
+  .seat-card.empty{color:#B9B9B9; font-style:italic; font-weight:500;}
+  .seat-card.g-m{border-bottom:3px solid #3E6FA8;}
+  .seat-card.g-f{border-bottom:3px solid var(--redpen);}
+  .seat-card{cursor:pointer; transition:transform .08s ease;}
+  .seat-card:hover{transform:translateY(-1px); box-shadow:0 2px 4px rgba(0,0,0,.18);}
+  .seat-card.selected{outline:3px solid var(--gold); outline-offset:-3px; background:var(--gold-dim);}
+
+  /* rows */
+  .rows-wrap{display:flex; flex-direction:column; gap:14px;}
+  .row-line{display:flex; align-items:center; gap:18px;}
+  .row-tag{ font-family:'Caveat',cursive; font-size:18px; color:var(--board); min-width:58px; }
+  .row-seats{display:flex; gap:8px; flex:1; flex-wrap:wrap;}
+  .row-seats .seat-card{flex:1; min-width:78px;}
+  .aisle-gap{width:22px;}
+  .front-label{
+    text-align:center; font-family:'Caveat',cursive; color:var(--gold); font-size:15px; letter-spacing:.08em;
+    text-transform:uppercase; border-bottom:2px dashed var(--line); padding-bottom:8px; margin-bottom:16px;
+  }
+
+  /* dots / carpet */
+  .teacher-marker{
+    text-align:center; font-family:'Caveat',cursive; color:var(--gold-dim); background:var(--board);
+    font-size:15px; letter-spacing:.04em; padding:6px 0; border-radius:8px 8px 0 0;
+  }
+  .carpet{
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.05), transparent 55%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 6px),
+      var(--carpet);
+    border-radius:0 0 14px 14px; padding:26px 22px 30px;
+  }
+  .dot-grid{ display:grid; gap:14px; justify-items:center; }
+  .dot{
+    position:relative; aspect-ratio:1/1; width:100%; max-width:120px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; text-align:center; color:#F5F8FF;
+    font-weight:700; font-size:12px; padding:6px; line-height:1.15;
+    box-shadow: inset 0 3px 6px rgba(255,255,255,0.18), inset 0 -6px 10px rgba(0,0,0,0.28), 0 3px 5px rgba(0,0,0,0.35);
+  }
+  .dot .spot-num{ position:absolute; top:6px; left:9px; font-family:'Inter',sans-serif; font-weight:800; font-size:9px; color:rgba(255,255,255,0.55); }
+  .dot.empty{ color:rgba(255,255,255,0.35); font-style:italic; font-weight:500; box-shadow:inset 0 0 0 2px rgba(255,255,255,0.12); }
+  .dot.g-m{ outline:3px solid rgba(120,170,255,0.55); outline-offset:-4px; }
+  .dot.g-f{ outline:3px solid rgba(255,150,170,0.55); outline-offset:-4px; }
+  .dot{cursor:pointer; transition:transform .08s ease;}
+  .dot:hover{transform:scale(1.04);}
+  .dot.selected{outline:4px solid var(--gold) !important; outline-offset:-4px;}
+
+  footer.app-footer{ text-align:center; font-size:12px; color:var(--ink-soft); padding:20px 24px 40px; }
+
+  @media print{
+    body{background:#fff;}
+    header.app-header, .no-print, footer.app-footer{display:none !important;}
+    main{display:block; padding:0; max-width:none;}
+    .panel.setup{display:none !important;}
+    .chart-panel{padding:0; border:none; box-shadow:none;}
+    #chartArea{border:none; background:#fff; padding:0;}
+    .swap-hint{display:none !important;}
+    .seat-card.selected{outline:none !important; background:var(--card) !important;}
+    .dot.selected{outline:none !important;}
+    .pod{break-inside:avoid;}
+    .row-line{break-inside:avoid;}
+    .teacher-marker{background:#fff; color:#333; border:1px dashed #999; border-radius:8px;}
+    .carpet{ background:#fff !important; border:1px solid #ccc; }
+    .dot{ box-shadow:none !important; border:2px solid #2C4F82 !important; background:#fff !important; color:#1a1a1a !important; }
+    .dot .spot-num{color:#888 !important;}
+    .dot.empty{border-style:dashed !important; color:#aaa !important;}
+    .dot{break-inside:avoid;}
+  }
+  @page{margin:14mm;}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-actions">
+      <button class="btn btn-gold" id="sampleBtn">&#9998; Run a sample seating chart</button>
+    </div>
+    <p class="eyebrow">Free &middot; No login &middot; Nothing uploaded</p>
+    <h1 class="title">Classroom Seating Planner</h1>
+    <p class="subtitle">Paste your roster once, then toggle between table pods, classroom rows, or carpet dot spots &mdash; your names, gender tags, and rules carry over automatically. Everything stays in this browser tab.</p>
+  </div>
+</header>
+
+<main>
+  <div class="panel setup">
+
+    <div class="section" style="background:var(--paper-dim); border-radius:var(--radius) var(--radius) 0 0;">
+      <div class="section-head" style="margin-bottom:6px;">
+        <h2 class="section-title" style="font-size:13px;">&#128190; Saved class</h2>
+      </div>
+      <p class="section-hint" style="margin-bottom:10px;">Save your roster, gender tags, rules, and all three layout configs to a small file &mdash; load it next time instead of re-pasting everything.</p>
+      <div class="btn-row" style="margin-top:0;">
+        <button class="btn" id="saveClassBtn">Save this class</button>
+        <button class="btn" id="loadClassBtn">Load saved class</button>
+        <input type="file" id="loadClassFile" accept=".json" style="display:none;">
+      </div>
+      <p class="section-hint" id="saveLoadStatus" style="margin:8px 0 0;"></p>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num hand">1</span>
+        <h2 class="section-title">Layout</h2>
+      </div>
+      <p class="section-hint">Choose a view, then set its seat counts. Switching views keeps your roster and rules.</p>
+
+      <div class="toggle-group" id="layoutToggle">
+        <button data-mode="pods" class="active">Table pods</button>
+        <button data-mode="rows">Rows</button>
+        <button data-mode="dots">Dot spots</button>
+      </div>
+
+      <div id="podsConfig" style="margin-top:14px;">
+        <div class="row">
+          <div><label class="field-label">Number of tables</label><input type="number" id="numPods" min="1" max="20" value="6"></div>
+          <div><label class="field-label">Seats per table</label><input type="number" id="seatsPerPod" min="1" max="10" value="4"></div>
+        </div>
+        <div class="row" style="margin-top:10px;">
+          <div><label class="field-label">Tables per row (how they're arranged)</label><input type="number" id="podsPerRow" min="1" max="10" value="3"></div>
+        </div>
+        <p class="section-hint" style="margin-top:6px;">Each row is mirrored left&ndash;right (e.g. Table 3, 2, 1 on top; Table 6, 5, 4 below) to match a typical room where table numbering runs the opposite way per row.</p>
+        <div class="checkbox-row">
+          <input type="checkbox" id="customizePods">
+          <label for="customizePods">Some tables have a different number of seats</label>
+        </div>
+        <div id="podEditorList" class="pod-editor-list" style="display:none;"></div>
+      </div>
+
+      <div id="rowsConfig" style="margin-top:14px; display:none;">
+        <div class="row">
+          <div><label class="field-label">Number of rows</label><input type="number" id="numRows" min="1" max="15" value="5"></div>
+          <div><label class="field-label">Seats per row</label><input type="number" id="seatsPerRow" min="1" max="12" value="6"></div>
+        </div>
+        <p class="section-hint" style="margin-top:8px;">Each row is split down the middle with a center aisle.</p>
+      </div>
+
+      <div id="dotsConfig" style="margin-top:14px; display:none;">
+        <div class="row">
+          <div><label class="field-label">Rows</label><input type="number" id="dotRows" min="1" max="12" value="4"></div>
+          <div><label class="field-label">Columns</label><input type="number" id="dotCols" min="1" max="12" value="6"></div>
+        </div>
+        <p class="section-hint" id="dotTotalHint" style="margin-top:8px;">24 dots total.</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num hand">2</span>
+        <h2 class="section-title">Class roster</h2>
+      </div>
+      <p class="section-hint">Paste one student name per line, copied from your class list.</p>
+      <textarea id="rosterInput" placeholder="Ava Thompson
+Liam Carter
+Maya Chen
+..."></textarea>
+      <div class="btn-row">
+        <button class="btn" id="parseRosterBtn">Load names</button>
+        <button class="btn btn-ghost" id="clearRosterBtn">Clear</button>
+      </div>
+      <p class="roster-count" id="rosterCount"></p>
+      <div class="chip-list" id="rosterChips"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num hand">3</span>
+        <h2 class="section-title">Rules (optional)</h2>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="genderBalanceToggle">
+        <label for="genderBalanceToggle">Balance boys / girls across the layout</label>
+      </div>
+      <p class="section-hint" id="genderHint" style="display:none;">Genders are guessed automatically from first names in Step 2 (marked with &#9998;). Click any M/F/&ndash; tag there to correct a wrong guess.</p>
+
+      <div class="checkbox-row" style="margin-top:12px;">
+        <input type="checkbox" id="behaviorToggle">
+        <label for="behaviorToggle">Spread out behavior levels (1 / 2 / 3)</label>
+      </div>
+      <p class="section-hint" id="behaviorHint" style="display:none;">Tag each student 1/2/3 in Step 2. Untagged students count as "2" until you tag them. These tags are never shown on the chart itself &mdash; screen or print &mdash; they only steer the shuffle.</p>
+      <div id="behaviorLegend" style="display:none; margin:6px 0 4px; padding:10px 12px; background:var(--paper); border:1px solid var(--line); border-radius:7px;">
+        <label class="field-label" style="margin-bottom:6px;">Legend (edit to fit your class)</label>
+        <div class="row" style="margin-bottom:6px;"><div style="flex:0 0 22px; font-weight:800; color:var(--redpen); padding-top:8px;">1</div><div><input type="text" id="behaviorLabel1" value="Needs extra support"></div></div>
+        <div class="row" style="margin-bottom:6px;"><div style="flex:0 0 22px; font-weight:800; color:var(--ink-soft); padding-top:8px;">2</div><div><input type="text" id="behaviorLabel2" value="Typical"></div></div>
+        <div class="row"><div style="flex:0 0 22px; font-weight:800; color:#3E8A5A; padding-top:8px;">3</div><div><input type="text" id="behaviorLabel3" value="Can help model behavior"></div></div>
+      </div>
+
+      <label class="field-label" style="margin-top:14px;">Keep-apart / keep-together rules</label>
+      <textarea id="rulesInput" placeholder="Don't sit Peter next to Paul, they cause too much mischief
+Keep Ava away from Noah
+Sit Priya near Maya"></textarea>
+      <div class="btn-row"><button class="btn" id="parseRulesBtn">Detect rules</button></div>
+      <div id="rulesPreview" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-num hand">4</span>
+        <h2 class="section-title">Generate</h2>
+      </div>
+      <button class="btn btn-primary" id="generateBtn">Generate seating chart</button>
+      <div class="btn-row">
+        <button class="btn" id="reshuffleBtn" disabled>Shuffle again</button>
+        <button class="btn btn-gold" id="printBtn" disabled>Print / Save as PDF</button>
+      </div>
+      <div id="warnBox"></div>
+    </div>
+
+  </div>
+
+  <div class="panel chart-panel">
+    <div class="chart-toolbar"><h2>Your seating chart</h2></div>
+    <div id="chartArea">
+      <div class="chart-empty" id="chartEmptyState">
+        <span class="hand">Nothing generated yet</span>
+        <p style="max-width:340px; margin:0;">Fill in Steps 1&ndash;3 on the left, or click <strong>"Run a sample seating chart"</strong> to see how it works.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="app-footer">Built for teachers. Runs entirely in your browser &mdash; no accounts, no uploads, nothing stored.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  const state = {
+    layoutMode: 'pods',           // 'pods' | 'rows' | 'dots'
+    pods: [4,4,4,4,4,4],
+    podsPerRow: 3,                // how the pod grid wraps + mirrors per row
+    numRows: 5, seatsPerRow: 6,   // classroom "rows" mode
+    dotRows: 4, dotCols: 6,       // carpet "dots" mode
+    students: [],                  // {id, name, gender, guessed, behavior}
+    genderBalance: false,
+    behaviorGrouping: false,
+    behaviorLabels: {1:'Needs extra support', 2:'Typical', 3:'Can help model behavior'},
+    parsedRules: [],
+    arrangements: {pods:null, rows:null, dots:null},
+    selectedSeatKey: null,
+    chartTitle: 'Seating Chart'
+  };
+  let uid = 1;
+
+  function $(sel){ return document.querySelector(sel); }
+  function $all(sel){ return Array.from(document.querySelectorAll(sel)); }
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+    return a;
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ---------------- Gender guessing ----------------
+  const MALE_NAMES = ["james","robert","john","michael","david","william","richard","joseph","thomas","charles",
+    "christopher","daniel","matthew","anthony","mark","donald","steven","paul","andrew","joshua","kenneth","kevin",
+    "brian","george","timothy","ronald","edward","jason","jeffrey","ryan","jacob","gary","nicholas","eric","jonathan",
+    "stephen","larry","justin","scott","brandon","benjamin","samuel","gregory","alexander","patrick","frank","raymond",
+    "jack","dennis","jerry","tyler","aaron","jose","adam","henry","nathan","douglas","zachary","peter","kyle","walter",
+    "ethan","jeremy","harold","keith","christian","roger","noah","gerald","carl","terry","sean","austin","arthur",
+    "lawrence","jesse","dylan","bryan","joe","jordan","billy","bruce","albert","willie","gabriel","logan","alan","juan",
+    "wayne","roy","ralph","randy","eugene","vincent","russell","elijah","louis","bobby","philip","johnny","howard",
+    "liam","mason","owen","leo","theo","milo","oliver","lucas","caleb","wyatt","hunter","isaac","connor","cooper",
+    "colton","landon","carter","grayson","luke","asher","felix","miles","silas","finn","ezra","xavier","ian","marcus",
+    "victor","hugo","oscar","leon","otto","theodore","frederick","edwin","elliot","elliott","simon","francis","martin",
+    "dean","curtis","glenn","harvey","malcolm","marshall","omar","rafael","ricardo","sergio","diego","carlos","miguel",
+    "luis","pedro","alejandro","javier","rahul","arjun","rohan","aditya","amit","sanjay","ravi","kabir","dev"];
+  const FEMALE_NAMES = ["mary","patricia","jennifer","linda","elizabeth","barbara","susan","jessica","sarah","karen",
+    "nancy","lisa","margaret","betty","sandra","ashley","dorothy","kimberly","emily","donna","michelle","carol",
+    "amanda","melissa","deborah","stephanie","rebecca","sharon","laura","cynthia","kathleen","amy","angela","shirley",
+    "anna","brenda","pamela","emma","nicole","helen","samantha","katherine","christine","debra","rachel","catherine",
+    "carolyn","janet","ruth","maria","heather","diane","virginia","julie","joyce","victoria","olivia","kelly",
+    "christina","lauren","joan","evelyn","judith","megan","andrea","cheryl","hannah","jacqueline","martha","gloria",
+    "teresa","sara","janice","marie","julia","grace","judy","theresa","madison","beverly","denise","marilyn","amber",
+    "danielle","abigail","brittany","rose","diana","natalie","sophia","ava","isabella","mia","charlotte","amelia",
+    "harper","ella","scarlett","luna","chloe","penelope","layla","riley","zoey","nora","lily","eleanor","hazel",
+    "violet","aurora","savannah","audrey","brooklyn","bella","claire","skylar","lucy","paisley","everly","caroline",
+    "genesis","aaliyah","kennedy","willow","maya","priya","ananya","ishita","mila","ivy","ruby","willa","sofia","zoe",
+    "nova","stella","athena","freya","wren","juniper","margot","iris","autumn","faith","gabriella","alexandra",
+    "valentina","camila","jasmine","destiny","alexa","natasha","meera","kavya"];
+  const GENDER_GUESS = {};
+  MALE_NAMES.forEach(n=> GENDER_GUESS[n]='M');
+  FEMALE_NAMES.forEach(n=> GENDER_GUESS[n]='F');
+  function guessGender(fullName){
+    const first = fullName.split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g,'');
+    return GENDER_GUESS[first] || null;
+  }
+
+  // ---------------- Layout toggle ----------------
+  function showConfigFor(mode){
+    $('#podsConfig').style.display = mode==='pods' ? '' : 'none';
+    $('#rowsConfig').style.display = mode==='rows' ? '' : 'none';
+    $('#dotsConfig').style.display = mode==='dots' ? '' : 'none';
+  }
+  const EMPTY_CHART_HTML = `<div class="chart-empty" id="chartEmptyState">
+        <span class="hand">Nothing generated yet</span>
+        <p style="max-width:340px; margin:0;">Fill in Steps 1&ndash;3 on the left, or click <strong>"Run a sample seating chart"</strong> to see how it works.</p>
+      </div>`;
+  function refreshChartView(){
+    if(state.arrangements[state.layoutMode]){
+      renderChart();
+      $('#reshuffleBtn').disabled = false;
+      $('#printBtn').disabled = false;
+    } else if(state.students.length){
+      generate(); // first visit to this tab with a loaded roster - generate and cache it
+    } else {
+      $('#chartArea').innerHTML = EMPTY_CHART_HTML;
+      $('#reshuffleBtn').disabled = true;
+      $('#printBtn').disabled = true;
+    }
+  }
+  function clearArrangements(){
+    state.arrangements = {pods:null, rows:null, dots:null};
+  }
+  $all('#layoutToggle button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      $all('#layoutToggle button').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state.layoutMode = btn.dataset.mode;
+      state.selectedSeatKey = null;
+      showConfigFor(state.layoutMode);
+      refreshChartView();
+    });
+  });
+
+  function syncPodsFromInputs(){
+    const n = Math.max(1, parseInt($('#numPods').value)||1);
+    const seats = Math.max(1, parseInt($('#seatsPerPod').value)||1);
+    if(!$('#customizePods').checked){
+      state.pods = new Array(n).fill(seats);
+    } else {
+      const prev = state.pods.slice();
+      const next = [];
+      for(let i=0;i<n;i++){ next.push(prev[i]!==undefined ? prev[i] : seats); }
+      state.pods = next;
+    }
+    renderPodEditor();
+  }
+  function renderPodEditor(){
+    const wrap = $('#podEditorList');
+    if(!$('#customizePods').checked){ wrap.style.display='none'; wrap.innerHTML=''; return; }
+    wrap.style.display='grid';
+    wrap.innerHTML = state.pods.map((seats,i)=>`
+      <div class="pod-editor-item">Table ${i+1}<input type="number" min="1" max="10" value="${seats}" data-pod-idx="${i}"></div>
+    `).join('');
+    $all('#podEditorList input').forEach(inp=>{
+      inp.addEventListener('input', ()=>{
+        const idx = parseInt(inp.dataset.podIdx);
+        state.pods[idx] = Math.max(1, parseInt(inp.value)||1);
+      });
+    });
+  }
+  ['numPods','seatsPerPod'].forEach(id=> $('#'+id).addEventListener('input', syncPodsFromInputs));
+  $('#customizePods').addEventListener('change', syncPodsFromInputs);
+  $('#podsPerRow').addEventListener('input', ()=>{ state.podsPerRow = Math.max(1, parseInt($('#podsPerRow').value)||1); });
+  syncPodsFromInputs();
+
+  $('#numRows').addEventListener('input', ()=>{ state.numRows = Math.max(1, parseInt($('#numRows').value)||1); });
+  $('#seatsPerRow').addEventListener('input', ()=>{ state.seatsPerRow = Math.max(1, parseInt($('#seatsPerRow').value)||1); });
+
+  function updateDotTotalHint(){ $('#dotTotalHint').textContent = `${state.dotRows * state.dotCols} dots total.`; }
+  $('#dotRows').addEventListener('input', ()=>{ state.dotRows = Math.max(1, parseInt($('#dotRows').value)||1); updateDotTotalHint(); });
+  $('#dotCols').addEventListener('input', ()=>{ state.dotCols = Math.max(1, parseInt($('#dotCols').value)||1); updateDotTotalHint(); });
+  updateDotTotalHint();
+
+  // ---------------- Roster ----------------
+  function parseRosterText(text){
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+    const prevByName = {};
+    state.students.forEach(s=> prevByName[s.name.toLowerCase()] = {gender:s.gender, guessed:s.guessed, behavior:s.behavior});
+    return lines.map(name=>{
+      const prev = prevByName[name.toLowerCase()];
+      if(prev && (prev.gender!==null && prev.gender!==undefined || prev.guessed===false)){
+        return { id:'s'+(uid++), name, gender: prev.gender, guessed: !!prev.guessed, behavior: prev.behavior||null };
+      }
+      const guess = guessGender(name);
+      return { id:'s'+(uid++), name, gender: guess, guessed: guess!==null, behavior: (prev&&prev.behavior)||null };
+    });
+  }
+
+  $('#parseRosterBtn').addEventListener('click', ()=>{
+    state.students = parseRosterText($('#rosterInput').value);
+    clearArrangements();
+    renderRosterChips();
+    refreshChartView();
+  });
+  $('#clearRosterBtn').addEventListener('click', ()=>{
+    $('#rosterInput').value=''; state.students = []; clearArrangements(); renderRosterChips(); refreshChartView();
+  });
+  $('#genderBalanceToggle').addEventListener('change', function(){
+    state.genderBalance = this.checked;
+    $('#genderHint').style.display = this.checked ? '' : 'none';
+    renderRosterChips();
+  });
+
+  $('#behaviorToggle').addEventListener('change', function(){
+    state.behaviorGrouping = this.checked;
+    $('#behaviorHint').style.display = this.checked ? '' : 'none';
+    $('#behaviorLegend').style.display = this.checked ? '' : 'none';
+    renderRosterChips();
+  });
+  ['behaviorLabel1','behaviorLabel2','behaviorLabel3'].forEach((id,i)=>{
+    $('#'+id).addEventListener('input', function(){ state.behaviorLabels[i+1] = this.value; });
+  });
+
+  function renderRosterChips(){
+    const list = $('#rosterChips');
+    const count = $('#rosterCount');
+    count.textContent = state.students.length ? `${state.students.length} student${state.students.length===1?'':'s'} loaded` : '';
+    if(!state.students.length){ list.innerHTML=''; return; }
+    list.innerHTML = state.students.map(s=>{
+      const g = s.gender;
+      const auto = s.guessed ? '<span title="Guessed from first name \u2014 click to correct" style="font-size:9px;color:var(--gold);margin-right:1px;">&#9998;</span>' : '';
+      const genderUi = state.genderBalance ? `
+        <span class="gtoggle" data-sid="${s.id}">
+          ${auto}
+          <button data-g="M" class="${g==='M'?'active-m':''}">M</button>
+          <button data-g="F" class="${g==='F'?'active-f':''}">F</button>
+          <button data-g="U" class="${(!g)?'active-u':''}">&ndash;</button>
+        </span>` : '';
+      const b = s.behavior;
+      const behaviorUi = state.behaviorGrouping ? `
+        <span class="btoggle" data-sid="${s.id}" title="Behavior level \u2014 never shown on the chart">
+          <button data-b="1" class="${b===1?'active-b1':''}">1</button>
+          <button data-b="2" class="${(!b||b===2)?'active-b2':''}">2</button>
+          <button data-b="3" class="${b===3?'active-b3':''}">3</button>
+        </span>` : '';
+      return `<span class="chip"><span class="gname">${escapeHtml(s.name)}</span>${genderUi}${behaviorUi}</span>`;
+    }).join('');
+    $all('.gtoggle').forEach(tg=>{
+      tg.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const sid = tg.dataset.sid;
+        const g = btn.dataset.g === 'U' ? null : btn.dataset.g;
+        const student = state.students.find(s=>s.id===sid);
+        if(student){ student.gender = g; student.guessed = false; renderRosterChips(); }
+      });
+    });
+    $all('.btoggle').forEach(tg=>{
+      tg.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const sid = tg.dataset.sid;
+        const b = parseInt(btn.dataset.b);
+        const student = state.students.find(s=>s.id===sid);
+        if(student){ student.behavior = b; renderRosterChips(); }
+      });
+    });
+  }
+
+  // ---------------- Rules parsing ----------------
+  const NEG_WORDS = ["don't","do not","doesn't","does not","cannot","can't","shouldn't","should not",
+    "won't","avoid","apart","away from","separate","never sit","not sit","mustn't"];
+  const POS_WORDS = ["together","next to","near","beside","with each other","pair","alongside"];
+
+  function findNameMatches(line, students){
+    const lower = line.toLowerCase();
+    const matches = [];
+    const sorted = students.slice().sort((a,b)=> b.name.length - a.name.length);
+    const firstNameCounts = {};
+    students.forEach(s=>{
+      const fn = s.name.split(/\s+/)[0].toLowerCase();
+      firstNameCounts[fn] = (firstNameCounts[fn]||0) + 1;
+    });
+    sorted.forEach(s=>{
+      const full = s.name.toLowerCase();
+      const first = s.name.split(/\s+/)[0].toLowerCase();
+      let idx = -1;
+      const fullRe = new RegExp('\\b'+full.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+      const fm = lower.match(fullRe);
+      if(fm){ idx = fm.index; }
+      else if(firstNameCounts[first]===1){
+        const firstRe = new RegExp('\\b'+first.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+        const fmatch = lower.match(firstRe);
+        if(fmatch){ idx = fmatch.index; }
+      }
+      if(idx>=0){ matches.push({student:s, idx}); }
+    });
+    matches.sort((a,b)=>a.idx-b.idx);
+    const seen = new Set();
+    const uniq = [];
+    matches.forEach(m=>{ if(!seen.has(m.student.id)){ seen.add(m.student.id); uniq.push(m); } });
+    return uniq.map(m=>m.student);
+  }
+  function classifyLine(line){
+    const lower = line.toLowerCase();
+    if(NEG_WORDS.some(w=> lower.includes(w))) return 'apart';
+    if(POS_WORDS.some(w=> lower.includes(w))) return 'together';
+    return null;
+  }
+  $('#parseRulesBtn').addEventListener('click', ()=>{
+    const lines = $('#rulesInput').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    const rules = [];
+    const unrecognized = [];
+    lines.forEach(line=>{
+      const names = findNameMatches(line, state.students);
+      const type = classifyLine(line);
+      if(names.length>=2 && type){
+        rules.push({ aId:names[0].id, bId:names[1].id, aName:names[0].name, bName:names[1].name, type, raw:line });
+      } else { unrecognized.push(line); }
+    });
+    state.parsedRules = rules;
+    renderRulesPreview(unrecognized);
+  });
+  function renderRulesPreview(unrecognized){
+    const box = $('#rulesPreview');
+    let html = '';
+    state.parsedRules.forEach((r,i)=>{
+      html += `<div class="rule-pill">
+        <span><span class="tag ${r.type==='apart'?'tag-apart':'tag-together'}">${r.type}</span>
+        &nbsp;${escapeHtml(r.aName)} &amp; ${escapeHtml(r.bName)}</span>
+        <button data-remove-rule="${i}" style="border:none;background:none;cursor:pointer;color:var(--ink-soft);font-size:15px;">&times;</button>
+      </div>`;
+    });
+    (unrecognized||[]).forEach(line=>{
+      html += `<div class="rule-unrecognized">Couldn't read: &ldquo;${escapeHtml(line)}&rdquo; &mdash; try wording like "don't sit X next to Y" or "keep X and Y together".</div>`;
+    });
+    box.innerHTML = html;
+    $all('[data-remove-rule]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        state.parsedRules.splice(parseInt(b.dataset.removeRule),1);
+        renderRulesPreview([]);
+      });
+    });
+  }
+
+  // ---------------- Seat list construction (per mode) ----------------
+  function buildSeatList(mode){
+    mode = mode || state.layoutMode;
+    const seats = [];
+    if(mode==='pods'){
+      const maxSeats = Math.max(...state.pods, 0);
+      for(let slot=0; slot<maxSeats; slot++){
+        state.pods.forEach((cap, podIdx)=>{
+          if(slot < cap){ seats.push({key:`p${podIdx}-${slot}`, podIdx, slot}); }
+        });
+      }
+    } else if(mode==='rows'){
+      const maxSeats = state.seatsPerRow;
+      for(let slot=0; slot<maxSeats; slot++){
+        for(let r=0; r<state.numRows; r++){ seats.push({key:`r${r}-${slot}`, rowIdx:r, slot}); }
+      }
+    } else { // dots
+      let n = 1;
+      for(let r=0; r<state.dotRows; r++){
+        for(let c=0; c<state.dotCols; c++){ seats.push({key:`d${r}-${c}`, row:r, col:c, num:n++}); }
+      }
+    }
+    return seats;
+  }
+
+  // ---------------- Generation ----------------
+  function buildOneAttempt(seats, students){
+    // Group students by whichever dimensions are enabled, then round-robin merge the
+    // groups so members of every group land spread across the seat sequence. This is
+    // what makes gender balance work, and reused here to spread behavior levels too.
+    function groupKey(s){
+      const g = state.genderBalance ? (s.gender || 'U') : null;
+      const b = state.behaviorGrouping ? (s.behavior || 2) : null;
+      const parts = [];
+      if(g!==null) parts.push('g'+g);
+      if(b!==null) parts.push('b'+b);
+      return parts.length ? parts.join('_') : 'ALL';
+    }
+    const buckets = {};
+    students.forEach(s=>{
+      const k = groupKey(s);
+      (buckets[k] = buckets[k] || []).push(s);
+    });
+    const keys = shuffle(Object.keys(buckets));
+    keys.forEach(k=> buckets[k] = shuffle(buckets[k]));
+    const order = [];
+    let added = true;
+    while(added){
+      added = false;
+      keys.forEach(k=>{ if(buckets[k].length){ order.push(buckets[k].shift()); added = true; } });
+    }
+    const assignment = {};
+    seats.forEach((seat, i)=>{ assignment[seat.key] = i < order.length ? order[i].id : null; });
+    return assignment;
+  }
+
+  function seatKeyForStudent(assignment, studentId){
+    for(const k in assignment){ if(assignment[k]===studentId) return k; }
+    return null;
+  }
+  function samePod(seatsByKey, keyA, keyB){
+    return seatsByKey[keyA] && seatsByKey[keyB] && seatsByKey[keyA].podIdx===seatsByKey[keyB].podIdx;
+  }
+  function adjacentInRow(seatsByKey, keyA, keyB){
+    const a = seatsByKey[keyA], b = seatsByKey[keyB];
+    if(!a || !b) return false;
+    return a.rowIdx===b.rowIdx && Math.abs(a.slot-b.slot)===1;
+  }
+  function adjacentOnGrid(seatsByKey, keyA, keyB){
+    const a = seatsByKey[keyA], b = seatsByKey[keyB];
+    if(!a || !b) return false;
+    return Math.max(Math.abs(a.row-b.row), Math.abs(a.col-b.col)) === 1;
+  }
+  function isLinked(seatsByKey, keyA, keyB){
+    if(state.layoutMode==='pods') return samePod(seatsByKey,keyA,keyB);
+    if(state.layoutMode==='rows') return adjacentInRow(seatsByKey,keyA,keyB);
+    return adjacentOnGrid(seatsByKey,keyA,keyB);
+  }
+
+  function countViolations(assignment, seatsByKey){
+    let v = 0;
+    state.parsedRules.forEach(rule=>{
+      const keyA = seatKeyForStudent(assignment, rule.aId);
+      const keyB = seatKeyForStudent(assignment, rule.bId);
+      if(!keyA || !keyB) return;
+      const linked = isLinked(seatsByKey,keyA,keyB);
+      if(rule.type==='apart' && linked) v++;
+      if(rule.type==='together' && !linked) v++;
+    });
+    return v;
+  }
+  function describeViolations(assignment, seatsByKey){
+    const msgs = [];
+    state.parsedRules.forEach(rule=>{
+      const keyA = seatKeyForStudent(assignment, rule.aId);
+      const keyB = seatKeyForStudent(assignment, rule.bId);
+      if(!keyA || !keyB){
+        msgs.push(`${rule.aName} and/or ${rule.bName} didn't get a seat, so the "${rule.type}" rule couldn't be checked.`);
+        return;
+      }
+      const linked = isLinked(seatsByKey,keyA,keyB);
+      if(rule.type==='apart' && linked) msgs.push(`Couldn't keep ${rule.aName} and ${rule.bName} apart.`);
+      if(rule.type==='together' && !linked) msgs.push(`Couldn't seat ${rule.aName} and ${rule.bName} together.`);
+    });
+    return msgs;
+  }
+
+  // ---------------- Behavior-level clustering / spread scoring ----------------
+  function groupIdForSeat(seat){
+    if(state.layoutMode==='pods') return 'pod'+seat.podIdx;
+    if(state.layoutMode==='rows') return 'row'+seat.rowIdx;
+    return null; // dot spots have no discrete "table" grouping
+  }
+  function countLevel1Clustering(assignment, seatsByKey){
+    if(!state.behaviorGrouping) return 0;
+    const ones = state.students.filter(s=>s.behavior===1).map(s=> seatKeyForStudent(assignment, s.id)).filter(Boolean);
+    let v = 0;
+    for(let i=0;i<ones.length;i++){
+      for(let j=i+1;j<ones.length;j++){
+        if(isLinked(seatsByKey, ones[i], ones[j])) v++;
+      }
+    }
+    return v;
+  }
+  function countMissingLevel3Groups(assignment, seatsByKey, seats){
+    if(!state.behaviorGrouping || state.layoutMode==='dots') return 0;
+    const filledGroups = new Set();
+    const groupsWithLevel3 = new Set();
+    seats.forEach(seat=>{
+      const sid = assignment[seat.key];
+      if(!sid) return;
+      const gid = groupIdForSeat(seat);
+      filledGroups.add(gid);
+      const s = studentById(sid);
+      if(s && s.behavior===3) groupsWithLevel3.add(gid);
+    });
+    let missing = 0;
+    filledGroups.forEach(gid=>{ if(!groupsWithLevel3.has(gid)) missing++; });
+    return missing;
+  }
+  function scoreAttempt(assignment, seatsByKey, seats){
+    const ruleV = countViolations(assignment, seatsByKey);
+    const level1V = countLevel1Clustering(assignment, seatsByKey);
+    const missing3 = countMissingLevel3Groups(assignment, seatsByKey, seats);
+    return { total: ruleV*3 + level1V*2 + missing3*1, ruleV, level1V, missing3 };
+  }
+  function describeBehaviorIssues(level1V, missing3){
+    const msgs = [];
+    if(level1V>0){
+      const groupWord = state.layoutMode==='pods' ? 'table' : (state.layoutMode==='rows' ? 'row' : 'spot');
+      msgs.push(`Couldn't fully separate every student flagged "1" \u2014 not enough ${groupWord}s to keep them all apart, so ${level1V} pair${level1V===1?'':'s'} still ended up near each other.`);
+    }
+    if(missing3>0){
+      const groupWord = state.layoutMode==='pods' ? 'table' : 'row';
+      msgs.push(`${missing3} ${groupWord}${missing3===1?'':'s'} didn't get a "3" student \u2014 there aren't enough to cover every ${groupWord}.`);
+    }
+    return msgs;
+  }
+
+  function generate(){
+    if(!state.students.length){ alert('Load a roster first (Step 2).'); return; }
+    state.selectedSeatKey = null;
+    const seats = buildSeatList();
+    const seatsByKey = {};
+    seats.forEach(s=> seatsByKey[s.key]=s);
+
+    const seatWord = state.layoutMode==='dots' ? 'dots' : 'seats';
+    if(seats.length < state.students.length){
+      renderWarnings([`Only ${seats.length} ${seatWord} are set up for ${state.students.length} students. Add more in Step 1, or ${state.students.length - seats.length} student${state.students.length-seats.length===1?'':'s'} will be left unseated.`]);
+    }
+
+    const attempts = Math.min(400, Math.max(60, state.students.length*15));
+    let best = null, bestScore = Infinity, bestDetail = null;
+    for(let i=0;i<attempts;i++){
+      const assignment = buildOneAttempt(seats, state.students);
+      const score = scoreAttempt(assignment, seatsByKey, seats);
+      if(score.total < bestScore){ best = assignment; bestScore = score.total; bestDetail = score; }
+      if(bestScore===0) break;
+    }
+    state.arrangements[state.layoutMode] = { seats, assignment: best, seatsByKey };
+    const msgs = describeViolations(best, seatsByKey).concat(describeBehaviorIssues(bestDetail.level1V, bestDetail.missing3));
+    if(seats.length < state.students.length){ if(msgs.length) appendWarnings(msgs); }
+    else { renderWarnings(msgs); }
+    renderChart();
+    $('#reshuffleBtn').disabled = false;
+    $('#printBtn').disabled = false;
+  }
+
+  function renderWarnings(msgs){
+    const box = $('#warnBox');
+    if(!msgs.length){ box.innerHTML=''; return; }
+    box.innerHTML = `<div class="warn-box"><strong>Heads up:</strong><ul>${msgs.map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul></div>`;
+  }
+  function appendWarnings(msgs){
+    const box = $('#warnBox');
+    const ul = box.querySelector('ul');
+    if(ul){ msgs.forEach(m=>{ const li=document.createElement('li'); li.textContent=m; ul.appendChild(li); }); }
+    else renderWarnings(msgs);
+  }
+
+  // ---------------- Chart rendering ----------------
+  function studentById(id){ return state.students.find(s=>s.id===id); }
+
+  const DOT_SHADES = ["#2C4F82","#325B92","#25446E","#3A66A0","#2A537F","#375E96","#1F3C63","#3F6BA8","#294D77","#365F98"];
+  function shadeFor(row,col){
+    const idx = Math.abs((row*7 + col*13 + row*col*3)) % DOT_SHADES.length;
+    return DOT_SHADES[idx];
+  }
+  function seatCardHtml(key, studentId){
+    const s = studentId ? studentById(studentId) : null;
+    const sel = state.selectedSeatKey===key ? ' selected' : '';
+    if(!s) return `<div class="seat-card empty${sel}" data-seat-key="${key}">Empty</div>`;
+    const gcls = s.gender==='M' ? 'g-m' : (s.gender==='F' ? 'g-f' : '');
+    return `<div class="seat-card ${gcls}${sel}" data-seat-key="${key}">${escapeHtml(s.name)}</div>`;
+  }
+  function dotHtml(seat, studentId){
+    const s = studentId ? studentById(studentId) : null;
+    const shade = shadeFor(seat.row, seat.col);
+    const sel = state.selectedSeatKey===seat.key ? ' selected' : '';
+    if(!s) return `<div class="dot empty${sel}" data-seat-key="${seat.key}" style="background:${shade};"><span class="spot-num">${seat.num}</span>Empty</div>`;
+    const gcls = s.gender==='M' ? 'g-m' : (s.gender==='F' ? 'g-f' : '');
+    return `<div class="dot ${gcls}${sel}" data-seat-key="${seat.key}" style="background:${shade};"><span class="spot-num">${seat.num}</span>${escapeHtml(s.name)}</div>`;
+  }
+
+  function layoutSummary(){
+    if(state.layoutMode==='pods') return `${state.pods.length} tables`;
+    if(state.layoutMode==='rows') return `${state.numRows} rows`;
+    return `${state.dotRows}\u00d7${state.dotCols} carpet grid`;
+  }
+
+  function renderChart(){
+    const area = $('#chartArea');
+    const arrangement = state.arrangements[state.layoutMode];
+    if(!arrangement){ return; }
+    const { seats, assignment } = arrangement;
+
+    let inner = `
+      <div class="chart-title-block">
+        <input type="text" id="chartTitleInput" value="${escapeHtml(state.chartTitle)}">
+        <div class="chart-meta">${state.students.length} students &middot; ${layoutSummary()} &middot; generated ${new Date().toLocaleDateString()}</div>
+        <div class="chart-meta swap-hint">&#8226; Click a student, then click another spot to swap them${state.selectedSeatKey ? ' &mdash; pick where they go' : ''}</div>
+      </div>
+    `;
+
+    if(state.layoutMode==='pods'){
+      const perRow = Math.max(1, state.podsPerRow||3);
+      const displayOrder = [];
+      for(let i=0;i<state.pods.length;i+=perRow){
+        const chunk = [];
+        for(let j=i;j<Math.min(i+perRow, state.pods.length); j++){ chunk.push(j); }
+        chunk.reverse();
+        displayOrder.push(...chunk);
+      }
+      inner += `<div class="front-label">Front of room</div><div class="pods-grid" style="grid-template-columns:repeat(${perRow}, 1fr);">`;
+      displayOrder.forEach(podIdx=>{
+        const cap = state.pods[podIdx];
+        inner += `<div class="pod"><span class="pod-label hand">Table ${podIdx+1}</span><div class="pod-seats">`;
+        for(let slot=0; slot<cap; slot++){ const k=`p${podIdx}-${slot}`; inner += seatCardHtml(k, assignment[k]); }
+        inner += `</div></div>`;
+      });
+      inner += `</div>`;
+    } else if(state.layoutMode==='rows'){
+      inner += `<div class="front-label">Front of room</div><div class="rows-wrap">`;
+      for(let r=0;r<state.numRows;r++){
+        inner += `<div class="row-line"><span class="row-tag hand">Row ${r+1}</span><div class="row-seats">`;
+        const half = Math.ceil(state.seatsPerRow/2);
+        for(let slot=0; slot<state.seatsPerRow; slot++){
+          if(slot===half) inner += `<div class="aisle-gap"></div>`;
+          const k = `r${r}-${slot}`;
+          inner += seatCardHtml(k, assignment[k]);
+        }
+        inner += `</div></div>`;
+      }
+      inner += `</div>`;
+    } else {
+      inner += `<div class="teacher-marker hand">&#9678; Teacher's chair &#9678;</div><div class="carpet">
+        <div class="dot-grid" style="grid-template-columns:repeat(${state.dotCols}, 1fr);">`;
+      seats.forEach(seat=>{ inner += dotHtml(seat, assignment[seat.key]); });
+      inner += `</div></div>`;
+    }
+
+    area.innerHTML = inner;
+    const titleInput = $('#chartTitleInput');
+    if(titleInput){ titleInput.addEventListener('input', ()=>{ state.chartTitle = titleInput.value; }); }
+  }
+
+  // ---------------- Buttons ----------------
+  $('#generateBtn').addEventListener('click', generate);
+  $('#reshuffleBtn').addEventListener('click', generate);
+  $('#printBtn').addEventListener('click', ()=> window.print());
+
+  // ---------------- Click-to-swap seats ----------------
+  $('#chartArea').addEventListener('click', (e)=>{
+    const el = e.target.closest('[data-seat-key]');
+    if(!el) return;
+    const arrangement = state.arrangements[state.layoutMode];
+    if(!arrangement) return;
+    const key = el.dataset.seatKey;
+    if(!state.selectedSeatKey){
+      state.selectedSeatKey = key;
+      renderChart();
+    } else if(state.selectedSeatKey === key){
+      state.selectedSeatKey = null;
+      renderChart();
+    } else {
+      const a = arrangement.assignment[state.selectedSeatKey];
+      const b = arrangement.assignment[key];
+      arrangement.assignment[state.selectedSeatKey] = b;
+      arrangement.assignment[key] = a;
+      state.selectedSeatKey = null;
+      renderWarnings([]);
+      renderChart();
+    }
+  });
+
+  // ---------------- Sample data ----------------
+  const SAMPLE_NAMES = [
+    "Ava Thompson","Liam Carter","Maya Chen","Noah Rivera","Zoe Bennett","Ethan Brooks",
+    "Priya Patel","Owen Foster","Grace Kim","Lucas Diaz","Ella Novak","Mason Reed",
+    "Sofia Ramirez","Jack Sullivan","Nora Whitfield","Leo Martinez","Chloe Adams","Henry Okafor",
+    "Ivy Larsson","Sam Whitaker","Ruby Nakamura","Theo Bianchi","Willa Fischer","Milo Andersson"
+  ];
+  const SAMPLE_RULES = `Don't sit Liam next to Jack, they cause too much mischief together
+Keep Ava away from Noah
+Sit Priya near Maya, they work well as partners`;
+
+  $('#sampleBtn').addEventListener('click', ()=>{
+    // set all three layout configs to their 24-seat sample defaults, so every tab
+    // shows a matching demo regardless of which tab you're on when you click
+    $('#numPods').value = 6; $('#seatsPerPod').value = 4; $('#customizePods').checked = false;
+    syncPodsFromInputs();
+    $('#numRows').value = 4; $('#seatsPerRow').value = 6;
+    state.numRows = 4; state.seatsPerRow = 6;
+    $('#dotRows').value = 4; $('#dotCols').value = 6;
+    state.dotRows = 4; state.dotCols = 6; updateDotTotalHint();
+
+    $('#rosterInput').value = SAMPLE_NAMES.join('\n');
+    state.students = parseRosterText($('#rosterInput').value);
+    // demo behavior tags: a handful of 1's and 3's spread through the roster, rest default to typical
+    state.students.forEach((s,i)=>{
+      if(i % 7 === 0) s.behavior = 1;
+      else if(i % 5 === 0) s.behavior = 3;
+      else s.behavior = 2;
+    });
+    clearArrangements();
+
+    $('#genderBalanceToggle').checked = true;
+    state.genderBalance = true;
+    $('#genderHint').style.display = 'none';
+
+    $('#behaviorToggle').checked = true;
+    state.behaviorGrouping = true;
+    $('#behaviorHint').style.display = 'none';
+    $('#behaviorLegend').style.display = '';
+    renderRosterChips();
+
+    $('#rulesInput').value = SAMPLE_RULES;
+    $('#parseRulesBtn').click();
+
+    state.chartTitle = 'Sample Seating Chart';
+    generate();
+    $('#chartArea').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  // ---------------- Save / load a class to a local file ----------------
+  function slugify(s){
+    return (s||'class').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'class';
+  }
+
+  $('#saveClassBtn').addEventListener('click', ()=>{
+    if(!state.students.length){ $('#saveLoadStatus').textContent = 'Load a roster first, then save.'; return; }
+    const data = {
+      appType: 'classroom-seating-planner',
+      version: 1,
+      savedAt: new Date().toISOString(),
+      layoutMode: state.layoutMode,
+      numPods: parseInt($('#numPods').value)||6,
+      seatsPerPod: parseInt($('#seatsPerPod').value)||4,
+      customizePods: $('#customizePods').checked,
+      pods: state.pods,
+      podsPerRow: state.podsPerRow,
+      numRows: state.numRows,
+      seatsPerRow: state.seatsPerRow,
+      dotRows: state.dotRows,
+      dotCols: state.dotCols,
+      genderBalance: state.genderBalance,
+      behaviorGrouping: state.behaviorGrouping,
+      behaviorLabels: state.behaviorLabels,
+      students: state.students.map(s=>({name:s.name, gender:s.gender, guessed:s.guessed, behavior:s.behavior||null})),
+      rulesText: $('#rulesInput').value,
+      chartTitle: state.chartTitle,
+      arrangementsByName: (function(){
+        const out = {};
+        ['pods','rows','dots'].forEach(m=>{
+          const arr = state.arrangements[m];
+          if(!arr) return;
+          const byName = {};
+          Object.keys(arr.assignment).forEach(seatKey=>{
+            const sid = arr.assignment[seatKey];
+            const s = sid ? studentById(sid) : null;
+            byName[seatKey] = s ? s.name : null;
+          });
+          out[m] = byName;
+        });
+        return out;
+      })()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = slugify(state.chartTitle) + '-class.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    $('#saveLoadStatus').textContent = 'Saved. Keep that file and use "Load saved class" next time.';
+  });
+
+  $('#loadClassBtn').addEventListener('click', ()=> $('#loadClassFile').click());
+
+  $('#loadClassFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt)=>{
+      let data;
+      try{ data = JSON.parse(evt.target.result); }
+      catch(err){ $('#saveLoadStatus').textContent = "That file didn't look like a saved class file."; return; }
+
+      state.layoutMode = ['pods','rows','dots'].includes(data.layoutMode) ? data.layoutMode : 'pods';
+      $all('#layoutToggle button').forEach(b=> b.classList.toggle('active', b.dataset.mode===state.layoutMode));
+      showConfigFor(state.layoutMode);
+
+      $('#numPods').value = data.numPods || 6;
+      $('#seatsPerPod').value = data.seatsPerPod || 4;
+      $('#customizePods').checked = !!data.customizePods;
+      state.podsPerRow = data.podsPerRow || 3;
+      $('#podsPerRow').value = state.podsPerRow;
+      state.numRows = data.numRows || 5;
+      state.seatsPerRow = data.seatsPerRow || 6;
+      $('#numRows').value = state.numRows;
+      $('#seatsPerRow').value = state.seatsPerRow;
+      state.dotRows = data.dotRows || 4;
+      state.dotCols = data.dotCols || 6;
+      $('#dotRows').value = state.dotRows;
+      $('#dotCols').value = state.dotCols;
+      updateDotTotalHint();
+      if(Array.isArray(data.pods) && data.pods.length){ state.pods = data.pods.slice(); }
+      syncPodsFromInputs();
+      if(Array.isArray(data.pods) && data.pods.length){ state.pods = data.pods.slice(); renderPodEditor(); }
+
+      const students = Array.isArray(data.students) ? data.students : [];
+      $('#rosterInput').value = students.map(s=>s.name).join('\n');
+      state.students = students.map(s=>({ id:'s'+(uid++), name:s.name, gender:s.gender||null, guessed:!!s.guessed, behavior:s.behavior||null }));
+      clearArrangements();
+      state.selectedSeatKey = null;
+
+      // restore any manually-arranged / previously generated charts, matched back up by student name
+      if(data.arrangementsByName){
+        const nameToId = {};
+        state.students.forEach(s=> nameToId[s.name.toLowerCase()] = s.id);
+        ['pods','rows','dots'].forEach(m=>{
+          const byName = data.arrangementsByName[m];
+          if(!byName) return;
+          const seats = buildSeatList(m);
+          const seatsByKey = {};
+          seats.forEach(s=> seatsByKey[s.key]=s);
+          const assignment = {};
+          seats.forEach(seat=>{
+            const name = byName[seat.key];
+            assignment[seat.key] = name ? (nameToId[name.toLowerCase()] || null) : null;
+          });
+          state.arrangements[m] = { seats, assignment, seatsByKey };
+        });
+      }
+
+      state.genderBalance = !!data.genderBalance;
+      $('#genderBalanceToggle').checked = state.genderBalance;
+      $('#genderHint').style.display = state.genderBalance ? '' : 'none';
+
+      state.behaviorGrouping = !!data.behaviorGrouping;
+      $('#behaviorToggle').checked = state.behaviorGrouping;
+      $('#behaviorHint').style.display = state.behaviorGrouping ? '' : 'none';
+      $('#behaviorLegend').style.display = state.behaviorGrouping ? '' : 'none';
+      if(data.behaviorLabels){
+        state.behaviorLabels = Object.assign({1:'Needs extra support',2:'Typical',3:'Can help model behavior'}, data.behaviorLabels);
+        $('#behaviorLabel1').value = state.behaviorLabels[1];
+        $('#behaviorLabel2').value = state.behaviorLabels[2];
+        $('#behaviorLabel3').value = state.behaviorLabels[3];
+      }
+      renderRosterChips();
+
+      $('#rulesInput').value = data.rulesText || '';
+      $('#parseRulesBtn').click();
+
+      state.chartTitle = data.chartTitle || 'Seating Chart';
+      const hadSavedChart = data.arrangementsByName && state.arrangements[state.layoutMode];
+      $('#saveLoadStatus').textContent = hadSavedChart
+        ? `Loaded ${state.students.length} students \u2014 your saved seating chart (including any manual moves) was restored.`
+        : `Loaded ${state.students.length} students. Click "Generate seating chart" when ready.`;
+      e.target.value = '';
+      refreshChartView();
+    };
+    reader.readAsText(file);
+  });
+
+})();
+</script>
+</body>
+</html>
