@@ -18,5 +18,8 @@ research), see [README.md](./README.md). For version history, see
   nothing uploaded or stored. Persistence is a download/upload class
   `.json` file. Preserve this property unless a deliberate decision is made
   to add a backend — see README's monetization section before doing that.
-- Nothing has been deployed yet. Next real step per the plan is deploying
-  as-is to a static host before any functional changes.
+- Deployed via GitHub Pages: https://candeezymac.github.io/classroom-seating-planner/
+  (repo made public to enable free Pages — no accounts/backend/data in the
+  app, so this is low-risk). Deploys automatically from `main` on push, no
+  build step. Next real step per the plan is a deliberate decision on
+  accounts/monetization — see README's monetization section.
