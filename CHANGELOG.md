@@ -18,7 +18,24 @@ settling. It started as **"Seating chart generator"**, gained a sibling
 **"Dot spot generator"** app, and the two were merged at v4 under the name
 **"Classroom Seating Planner"** — the name the app still uses today.
 
-## v7 — 2026-07-30 (current, in this repo)
+## v8 — 2026-08-12 (current, in this repo)
+
+- Fixed a gender-balance bug reported by a user: with an even number of
+  tables/rows, the shuffle's boy/girl round-robin lined up with the seat
+  grid's own per-table cycle (both period-2-friendly), so girls (or boys)
+  consistently piled onto the same subset of tables instead of spreading
+  out — e.g. 8 girls across 6 tables landed as 3/0/3/0/2/0 instead of
+  1/1/1/1/2/2. Table pods and rows now deal each gender/behavior group
+  round-robin directly across tables/rows (each group gets its own
+  independent shuffled cycle through every table), guaranteeing the spread
+  teachers expect regardless of table count. Dot spots, which have no
+  discrete "table" grouping, are unaffected and keep the prior flat
+  round-robin.
+- Reviewed the print/PDF flow after a user report of "click print and it
+  won't…" (report was cut off, and the issue wasn't reproducible) — no bug
+  found; print CSS and the `window.print()` call both check out.
+
+## v7 — 2026-07-30
 
 - Table pods view now renders in mirrored rows matching a real classroom
   layout (e.g. Table 3, 2, 1 on top; Table 6, 5, 4 below) via a new

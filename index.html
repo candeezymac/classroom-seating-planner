@@ -707,9 +707,7 @@ Sit Priya near Maya"></textarea>
 
   // ---------------- Generation ----------------
   function buildOneAttempt(seats, students){
-    // Group students by whichever dimensions are enabled, then round-robin merge the
-    // groups so members of every group land spread across the seat sequence. This is
-    // what makes gender balance work, and reused here to spread behavior levels too.
+    // Group students by whichever dimensions are enabled (gender and/or behavior level).
     function groupKey(s){
       const g = state.genderBalance ? (s.gender || 'U') : null;
       const b = state.behaviorGrouping ? (s.behavior || 2) : null;
@@ -725,6 +723,57 @@ Sit Priya near Maya"></textarea>
     });
     const keys = shuffle(Object.keys(buckets));
     keys.forEach(k=> buckets[k] = shuffle(buckets[k]));
+
+    const hasTables = state.layoutMode==='pods' || state.layoutMode==='rows';
+    if(hasTables){
+      // Deal each bucket round-robin across tables/rows (its own shuffled cycle
+      // through every table, independent of the other buckets) so e.g. every girl
+      // lands at a different table before any table gets a second girl. Mapping
+      // bucket order onto a flat, fixed seat sequence instead (as pods/rows lay
+      // seats out one "layer" per table at a time) can put a whole bucket on the
+      // same subset of tables whenever the bucket count divides the table count
+      // evenly (e.g. 2 genders into 6 tables) &mdash; this avoids that.
+      const groupIds = [];
+      const seatKeysByGroup = {};
+      const groupCapacity = {};
+      seats.forEach(seat=>{
+        const gid = groupIdForSeat(seat);
+        if(gid===null) return;
+        if(!(gid in groupCapacity)){ groupCapacity[gid] = 0; seatKeysByGroup[gid] = []; groupIds.push(gid); }
+        groupCapacity[gid]++;
+        seatKeysByGroup[gid].push(seat.key);
+      });
+      const groupFilled = {};
+      groupIds.forEach(gid=> groupFilled[gid] = 0);
+      const bucketGroupOrder = {}, bucketCursor = {};
+      keys.forEach(k=>{ bucketGroupOrder[k] = shuffle(groupIds); bucketCursor[k] = 0; });
+
+      const assignment = {};
+      let added = true;
+      while(added){
+        added = false;
+        keys.forEach(k=>{
+          if(!buckets[k].length) return;
+          const order = bucketGroupOrder[k];
+          for(let tries=0; tries<order.length; tries++){
+            const gid = order[bucketCursor[k] % order.length];
+            bucketCursor[k]++;
+            if(groupFilled[gid] < groupCapacity[gid]){
+              const student = buckets[k].shift();
+              assignment[seatKeysByGroup[gid][groupFilled[gid]]] = student.id;
+              groupFilled[gid]++;
+              added = true;
+              break;
+            }
+          }
+        });
+      }
+      seats.forEach(seat=>{ if(!(seat.key in assignment)) assignment[seat.key] = null; });
+      return assignment;
+    }
+
+    // No discrete tables (carpet dot spots): round-robin merge the groups so members
+    // of every group land spread across the flat seat sequence.
     const order = [];
     let added = true;
     while(added){
