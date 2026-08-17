@@ -218,6 +218,17 @@
     .dot .spot-num{color:#888 !important;}
     .dot.empty{border-style:dashed !important; color:#aaa !important;}
     .dot{break-inside:avoid;}
+
+    /* Teachers reading this printout stand at the front of the room, facing the
+       seats — the opposite direction from how "Front of room" being printed at
+       the top implies. To check it against the room, they physically flip the
+       page 180°, which already lines up the seating correctly (front-row tables
+       end up nearest them, left/right mirrors correctly) but leaves all the text
+       upside down. Pre-rotating each label/name here cancels that out, so a
+       flipped page reads right-side up. */
+    .chart-title-block, .front-label, .teacher-marker, .pod-label, .row-tag, .seat-card, .dot{
+      transform:rotate(180deg);
+    }
   }
   @page{margin:14mm;}
 </style>

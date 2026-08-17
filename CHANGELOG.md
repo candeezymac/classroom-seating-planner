@@ -18,7 +18,22 @@ settling. It started as **"Seating chart generator"**, gained a sibling
 **"Dot spot generator"** app, and the two were merged at v4 under the name
 **"Classroom Seating Planner"** — the name the app still uses today.
 
-## v8 — 2026-08-12 (current, in this repo)
+## v9 — 2026-08-16 (current, in this repo)
+
+- Fixed upside-down printouts reported by a user standing at the front of
+  the room: the chart is laid out "front of room" at the top, as if seen
+  from someone at the back looking forward, so referencing it from the
+  front means physically flipping the page 180° — which correctly realigns
+  the seating (front-row tables land nearest you, left/right mirrors
+  correctly) but also flips all the text upside down. Print output now
+  pre-rotates every label and name 180° in place (position on the page is
+  unchanged, only the glyphs are rotated), so a flipped page reads
+  right-side up while the on-screen editor is untouched. Applies to all
+  three layout modes — table pods, rows, and dot spots (including the
+  chart title, "Front of room"/"Teacher's chair" markers, and every
+  table/row label and student name).
+
+## v8 — 2026-08-12
 
 - Fixed a gender-balance bug reported by a user: with an even number of
   tables/rows, the shuffle's boy/girl round-robin lined up with the seat
