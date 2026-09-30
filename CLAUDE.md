@@ -18,8 +18,16 @@ research), see [README.md](./README.md). For version history, see
   nothing uploaded or stored. Persistence is a download/upload class
   `.json` file. Preserve this property unless a deliberate decision is made
   to add a backend — see README's monetization section before doing that.
-- Deployed via GitHub Pages: https://candeezymac.github.io/classroom-seating-planner/
+- **Primary deploy:** GitHub Pages, https://candeezymac.github.io/classroom-seating-planner/
   (repo made public to enable free Pages — no accounts/backend/data in the
   app, so this is low-risk). Deploys automatically from `main` on push, no
-  build step. Next real step per the plan is a deliberate decision on
+  build step.
+- **Fallback deploy:** Google Apps Script web app, for school networks that
+  block `*.github.io` in their content filter (common K-12 issue):
+  https://script.google.com/macros/s/AKfycbzDBsqkD6TE-xSuvOsfwY_qHdxvs6m2FQcJE-SrHaehrvIrEgqGUMfzxKXAaVODY5Mf/exec
+  Lives in `apps-script/` (`Code.gs` + a copy of `index.html`). **Not**
+  auto-deployed — after editing `index.html`, manually re-paste it into the
+  Apps Script editor's `index.html` file and push a new deployment version.
+  See `apps-script/README.md`.
+- Next real step per the plan is a deliberate decision on
   accounts/monetization — see README's monetization section.

@@ -91,15 +91,19 @@ it:
   project. Not strictly required yet since this app has no `fetch()` calls
   and works fine via `file://`, but will matter once anything needs a real
   origin (e.g. a backend API).
-- Nothing has been deployed anywhere yet. Nothing beyond the original
-  functionality has been changed.
+- **Deployed.** Primary: [GitHub Pages](https://candeezymac.github.io/classroom-seating-planner/)
+  (repo is public, deploys automatically on push to `main`). Fallback for
+  school networks that block `*.github.io` in their content filter: a
+  [Google Apps Script web app](https://script.google.com/macros/s/AKfycbzDBsqkD6TE-xSuvOsfwY_qHdxvs6m2FQcJE-SrHaehrvIrEgqGUMfzxKXAaVODY5Mf/exec)
+  serving the same `index.html`, hosted on a Google domain schools already
+  allow. See [`apps-script/README.md`](./apps-script/README.md) — that copy
+  is **not** auto-synced, it's a manual paste-in whenever `index.html`
+  changes.
 
 ## The plan from here (see also `~/.claude/plans/i-just-upgraded-to-cozy-lark.md`)
 
-1. **Deploy as-is first.** Push this repo to a static host (Vercel, Netlify,
-   or Cloudflare Pages all work for a single static HTML file — no build
-   step needed). Get a live URL before changing any functionality. This
-   alone lets other teachers try it.
+1. ~~Deploy as-is first.~~ **Done** — see "Current state" above for both
+   live URLs.
 2. **Decide what "scaling" actually means before adding complexity.** Two
    very different paths, and the app's current design (no backend at all)
    means neither is required yet:

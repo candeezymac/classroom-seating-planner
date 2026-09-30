@@ -1,5 +1,10 @@
 # Apps Script fallback deployment
 
+**Live URL:** https://script.google.com/macros/s/AKfycbzDBsqkD6TE-xSuvOsfwY_qHdxvs6m2FQcJE-SrHaehrvIrEgqGUMfzxKXAaVODY5Mf/exec
+(Apps Script project name: "Classroom-seating-chart-google", deployed
+2026-09-30. Deployed under Matt's own Google account — "Execute as: Me",
+"Who has access: Anyone.")
+
 This folder is **not** the primary deployment — GitHub Pages
 (https://candeezymac.github.io/classroom-seating-planner/) is. This exists
 only as a fallback for school networks that block `*.github.io` in their

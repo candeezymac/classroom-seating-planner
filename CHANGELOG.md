@@ -18,6 +18,18 @@ settling. It started as **"Seating chart generator"**, gained a sibling
 **"Dot spot generator"** app, and the two were merged at v4 under the name
 **"Classroom Seating Planner"** — the name the app still uses today.
 
+## Deployment note — 2026-09-30
+
+No code changes to `index.html`. Added a fallback deployment for school
+networks that block `*.github.io` in their content filter (a report of
+`ERR_CONNECTION_RESET` traced back to a school network, not the app or
+GitHub Pages). The app is now also served, unchanged, as a Google Apps
+Script web app — a domain Google Workspace for Education networks already
+allow. GitHub Pages remains the primary deployment; see
+[`apps-script/README.md`](./apps-script/README.md) for the fallback URL and
+how to keep it in sync with future `index.html` changes (it's a manual
+copy, not automatic).
+
 ## v9 — 2026-08-16 (current, in this repo)
 
 - Fixed upside-down printouts reported by a user standing at the front of
